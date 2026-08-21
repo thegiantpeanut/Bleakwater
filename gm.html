@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>WW1 Naval GM Board</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<style>
+*{box-sizing:border-box}
+body{margin:0;min-height:100vh;padding:12px;color:#27241d;font-family:Georgia,"Times New Roman",serif;background:radial-gradient(ellipse at 50% 0%,#60625c,#202321 75%)}
+.app{width:min(1050px,100%);margin:auto;padding:18px;background:linear-gradient(rgba(255,255,255,.08),rgba(0,0,0,.04)),#d8c99f;border:5px double #60491f;box-shadow:0 18px 45px #0009,inset 0 0 35px #4f371c38}
+.setup{max-width:450px;margin:15px auto 22px;padding:20px;border:2px solid #60491f;background:#efe3bf66}
+h1{text-align:center;font-size:1.65rem;letter-spacing:.12em;text-transform:uppercase;margin:0 0 18px}
+.setup label{display:block;margin:12px 0 5px;font-weight:bold;font-size:.82rem;letter-spacing:.06em;text-transform:uppercase}
+.setup input{width:100%;padding:11px;border:2px solid #60491f;background:#eee1bb;color:#27241d;font:inherit}
+button{font-family:Georgia,"Times New Roman",serif}
+.load{width:100%;margin-top:17px;padding:11px;color:#e6d9b4;background:linear-gradient(#5d625f,#303432);border:2px solid #60491f;border-radius:4px;font:inherit;font-weight:bold;letter-spacing:.1em;text-transform:uppercase;cursor:pointer}
+.error{margin-top:10px;color:#721d17;font-weight:bold;text-align:center}
+.hidden{display:none!important}
+.game-title{text-align:center;margin:3px 0 18px}
+.game-title .name{font-size:1.7rem;font-weight:bold;letter-spacing:.1em;text-transform:uppercase}
+.game-title .code{margin-top:4px;color:#625941;font-family:"Courier New",monospace;letter-spacing:.15em}
+.status{text-align:center;margin:-7px 0 16px;font-size:.82rem;color:#514a3a}
+.teams{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.team{background:#d9ca9f;border:2px solid #60491f;box-shadow:inset 0 0 14px #4d371e26,0 2px 4px #281e0f2e;overflow:hidden}
+.team-header{padding:12px 13px;background:linear-gradient(#665d49,#38362f);color:#e6d9b4;border-bottom:2px solid #60491f;display:flex;justify-content:space-between;align-items:center}
+.team-name{font-weight:bold;letter-spacing:.12em;text-transform:uppercase}
+.team-count{font-family:"Courier New",monospace}
+.players{padding:9px}
+.no-players{text-align:center;padding:18px 8px;color:#625941;font-style:italic}
+.player{margin-bottom:9px;padding:10px;background:#eadbb0;border:1px solid #80683b;box-shadow:inset 0 0 8px #4d371e18}
+.player:last-child{margin-bottom:0}
+.player-name{font-weight:bold;font-size:1.02rem;margin-bottom:8px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:5px}
+.stat{padding:6px 4px;text-align:center;border-top:1px solid #80683b66}
+.stat-label{font-size:.65rem;letter-spacing:.07em;text-transform:uppercase;color:#625941}
+.stat-value{font-family:"Courier New",monospace;font-weight:bold;font-size:1.05rem;color:#60491f;margin-top:2px}
+.dealt{margin-top:8px;padding-top:7px;border-top:1px solid #80683b66;display:flex;justify-content:space-between;align-items:baseline}
+.dealt-label{font-size:.67rem;letter-spacing:.07em;text-transform:uppercase;color:#625941}
+.dealt-value{font-family:"Courier New",monospace;font-size:1.1rem;font-weight:bold;color:#60491f}
+.team-total{margin:9px;padding:10px;border-top:2px double #60491f;background:#d0bf90}
+.total-title{font-weight:bold;font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;margin-bottom:7px}
+.total-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4px}
+.total-stat{text-align:center}
+.total-label{font-size:.58rem;text-transform:uppercase;color:#625941}
+.total-value{font-family:"Courier New",monospace;font-weight:bold;color:#60491f}
+
+.messaging{margin-top:18px;padding:15px;background:#d9ca9f;border:2px solid #60491f;box-shadow:inset 0 0 14px #4d371e26,0 2px 4px #281e0f2e}
+.messaging-title{font-size:1.05rem;font-weight:bold;letter-spacing:.1em;text-transform:uppercase;margin-bottom:10px}
+.message-controls{display:grid;grid-template-columns:170px minmax(0,1fr) auto;gap:8px;align-items:stretch}
+.message-controls select,.message-controls textarea{border:2px solid #60491f;background:#eee1bb;color:#27241d;font:inherit}
+.message-controls select{padding:9px}
+.message-controls textarea{min-height:54px;padding:9px;resize:vertical}
+.send-message{padding:9px 13px;color:#e6d9b4;background:linear-gradient(#5d625f,#303432);border:2px solid #60491f;border-radius:4px;font:inherit;font-weight:bold;letter-spacing:.06em;text-transform:uppercase;cursor:pointer}
+.send-message:disabled{opacity:.55;cursor:default}
+.message-status{margin-top:7px;min-height:1.1em;font-size:.8rem;color:#514a3a}
+.message-status.error{color:#721d17;font-weight:bold}
+@media(max-width:800px){.teams{grid-template-columns:1fr}.app{padding:13px 10px}.team-header{padding:11px 12px}.message-controls{grid-template-columns:1fr}.message-controls select,.message-controls textarea,.send-message{width:100%}}
+</style>
+</head>
+<body>
+<main class="app">
+
+<section id="setup" class="setup">
+<h1>GM Board</h1>
+<label for="gameCode">Game Code</label>
+<input id="gameCode" type="text" autocomplete="off" placeholder="Enter game code">
+<button class="load" id="loadGame" type="button">Load Game</button>
+<div id="error" class="error"></div>
+</section>
+
+<section id="board" class="hidden">
+<div class="game-title">
+  <div class="name" id="gameName">WW1 Naval Battle</div>
+  <div class="code" id="gameCodeDisplay"></div>
+</div>
+<div class="status" id="status">Live connection active</div>
+<div class="teams" id="teams"></div>
+
+<div class="messaging">
+  <div class="messaging-title">Send Message</div>
+  <div class="message-controls">
+    <select id="recipient">
+      <option value="all">All Players</option>
+      <option value="team:1">Team 1</option>
+      <option value="team:2">Team 2</option>
+      <option value="team:3">Team 3</option>
+      <option value="player">Individual Player</option>
+    </select>
+    <select id="playerRecipient" class="hidden">
+      <option value="">Select player...</option>
+    </select>
+    <textarea id="messageText" placeholder="Type a message to the players..."></textarea>
+    <button class="send-message" id="sendMessage" type="button">Send</button>
+  </div>
+  <div id="messageStatus" class="message-status"></div>
+</div>
+
+</section>
+
+</main>
+
+<script>
+// ============================================================
+// SUPABASE CONNECTION
+// Put the SAME Supabase URL and publishable key here as in
+// the player index.html.
+// ============================================================
+
+const SUPABASE_URL = "https://srrkkobqngadfhgukxjz.supabase.co";
+const SUPABASE_KEY = "sb_publishable_DChcj7jOoTnXUIfh2f3-Fg_FPWOrMwb";
+
+const db = supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+
+let currentGame = null;
+let players = [];
+let realtimeChannel = null;
+
+const setup = document.getElementById("setup");
+const board = document.getElementById("board");
+const errorBox = document.getElementById("error");
+
+function showError(message) {
+  errorBox.textContent = message;
+}
+
+function renderBoard() {
+  const teamsContainer = document.getElementById("teams");
+  teamsContainer.innerHTML = "";
+
+  for (let teamNumber = 1; teamNumber <= 3; teamNumber++) {
+    const teamPlayers = players
+      .filter(player => Number(player.team) === teamNumber)
+      .sort((a,b) => a.name.localeCompare(b.name));
+
+    const team = document.createElement("section");
+    team.className = "team";
+
+    const header = document.createElement("div");
+    header.className = "team-header";
+    header.innerHTML = `
+      <div class="team-name">Team ${teamNumber}</div>
+      <div class="team-count">${teamPlayers.length} player${teamPlayers.length === 1 ? "" : "s"}</div>
+    `;
+    team.appendChild(header);
+
+    const playerList = document.createElement("div");
+    playerList.className = "players";
+
+    if (teamPlayers.length === 0) {
+      playerList.innerHTML = '<div class="no-players">No players yet</div>';
+    } else {
+      teamPlayers.forEach(player => {
+        const card = document.createElement("div");
+        card.className = "player";
+
+        card.innerHTML = `
+          <div class="player-name">${escapeHtml(player.name)}</div>
+
+          <div class="stats">
+            <div class="stat">
+              <div class="stat-label">Hull</div>
+              <div class="stat-value">${Number(player.hull) || 0}</div>
+            </div>
+
+            <div class="stat">
+              <div class="stat-label">Terror</div>
+              <div class="stat-value">${Number(player.terror) || 0}</div>
+            </div>
+
+            <div class="stat">
+              <div class="stat-label">Fate</div>
+              <div class="stat-value">${Number(player.fate) || 0}</div>
+            </div>
+          </div>
+
+          <div class="dealt">
+            <div class="dealt-label">Damage Dealt</div>
+            <div class="dealt-value">${Number(player.damage_dealt) || 0}</div>
+          </div>
+        `;
+
+        playerList.appendChild(card);
+      });
+    }
+
+    team.appendChild(playerList);
+
+    // Team totals.
+    const totals = teamPlayers.reduce((total, player) => {
+      total.hull += Number(player.hull) || 0;
+      total.terror += Number(player.terror) || 0;
+      total.fate += Number(player.fate) || 0;
+      total.damage_dealt += Number(player.damage_dealt) || 0;
+      return total;
+    }, {hull:0, terror:0, fate:0, damage_dealt:0});
+
+    const total = document.createElement("div");
+    total.className = "team-total";
+    total.innerHTML = `
+      <div class="total-title">Team Total</div>
+      <div class="total-stats">
+        <div class="total-stat">
+          <div class="total-label">Hull</div>
+          <div class="total-value">${totals.hull}</div>
+        </div>
+        <div class="total-stat">
+          <div class="total-label">Terror</div>
+          <div class="total-value">${totals.terror}</div>
+        </div>
+        <div class="total-stat">
+          <div class="total-label">Fate</div>
+          <div class="total-value">${totals.fate}</div>
+        </div>
+        <div class="total-stat">
+          <div class="total-label">Dealt</div>
+          <div class="total-value">${totals.damage_dealt}</div>
+        </div>
+      </div>
+    `;
+
+    team.appendChild(total);
+    teamsContainer.appendChild(team);
+  }
+}
+
+function escapeHtml(value) {
+  return String(value)
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+}
+
+
+function populatePlayerRecipient() {
+  const select = document.getElementById("playerRecipient");
+  const previous = select.value;
+
+  select.innerHTML = '<option value="">Select player...</option>';
+
+  [...players]
+    .sort((a,b) => {
+      const teamCompare = Number(a.team) - Number(b.team);
+      return teamCompare || a.name.localeCompare(b.name);
+    })
+    .forEach(player => {
+      const option = document.createElement("option");
+      option.value = player.id;
+      option.textContent = `Team ${player.team} · ${player.name}`;
+      select.appendChild(option);
+    });
+
+  if ([...select.options].some(option => option.value === previous)) {
+    select.value = previous;
+  }
+}
+
+function updateRecipientUI() {
+  const recipient = document.getElementById("recipient").value;
+  const playerSelect = document.getElementById("playerRecipient");
+
+  playerSelect.classList.toggle("hidden", recipient !== "player");
+
+  if (recipient === "player") {
+    populatePlayerRecipient();
+  }
+}
+
+async function sendMessage() {
+  const recipient = document.getElementById("recipient").value;
+  const playerId = document.getElementById("playerRecipient").value;
+  const message = document.getElementById("messageText").value.trim();
+  const status = document.getElementById("messageStatus");
+  const button = document.getElementById("sendMessage");
+
+  status.className = "message-status";
+  status.textContent = "";
+
+  if (!currentGame) {
+    status.textContent = "Load a game first.";
+    status.classList.add("error");
+    return;
+  }
+
+  if (!message) {
+    status.textContent = "Please type a message.";
+    status.classList.add("error");
+    return;
+  }
+
+  let recipientType = "all";
+  let recipientTeam = null;
+  let recipientPlayerId = null;
+
+  if (recipient.startsWith("team:")) {
+    recipientType = "team";
+    recipientTeam = Number(recipient.split(":")[1]);
+  } else if (recipient === "player") {
+    if (!playerId) {
+      status.textContent = "Select a player.";
+      status.classList.add("error");
+      return;
+    }
+    recipientType = "player";
+    recipientPlayerId = playerId;
+  }
+
+  button.disabled = true;
+
+  const { error } = await db
+    .from("messages")
+    .insert({
+      game_id: currentGame.id,
+      sender: "GM",
+      recipient_type: recipientType,
+      recipient_team: recipientTeam,
+      recipient_player_id: recipientPlayerId,
+      message: message
+    });
+
+  button.disabled = false;
+
+  if (error) {
+    console.error(error);
+    status.textContent = "Could not send the message.";
+    status.classList.add("error");
+    return;
+  }
+
+  document.getElementById("messageText").value = "";
+  status.textContent = "Message sent.";
+}
+
+async function loadGame() {
+  errorBox.textContent = "";
+
+  const gameCode = document.getElementById("gameCode").value.trim().toUpperCase();
+
+  if (!gameCode) {
+    showError("Please enter a game code.");
+    return;
+  }
+
+  const {data: game, error: gameError} = await db
+    .from("games")
+    .select("id, game_code, game_name")
+    .eq("game_code", gameCode)
+    .single();
+
+  if (gameError || !game) {
+    console.error(gameError);
+    showError("Game not found. Check the game code.");
+    return;
+  }
+
+  currentGame = game;
+
+  const {data: playerData, error: playersError} = await db
+    .from("players")
+    .select("id, game_id, name, team, hull, terror, fate, damage_dealt")
+    .eq("game_id", game.id);
+
+  if (playersError) {
+    console.error(playersError);
+    showError("Could not load the players.");
+    return;
+  }
+
+  players = playerData || [];
+
+  document.getElementById("gameName").textContent =
+    game.game_name || "WW1 Naval Battle";
+
+  document.getElementById("gameCodeDisplay").textContent =
+    game.game_code;
+
+  setup.classList.add("hidden");
+  board.classList.remove("hidden");
+
+  renderBoard();
+  subscribeToGame();
+}
+
+function subscribeToGame() {
+  if (!currentGame) return;
+
+  if (realtimeChannel) {
+    db.removeChannel(realtimeChannel);
+  }
+
+  realtimeChannel = db
+    .channel("gm-game-" + currentGame.id)
+    .on(
+      "postgres_changes",
+      {
+        event: "*",
+        schema: "public",
+        table: "players",
+        filter: `game_id=eq.${currentGame.id}`
+      },
+      async payload => {
+
+        // Re-fetch the players after every change. This keeps
+        // the dashboard simple and guarantees the team totals
+        // are recalculated correctly.
+        const {data, error} = await db
+          .from("players")
+          .select("id, game_id, name, team, hull, terror, fate, damage_dealt")
+          .eq("game_id", currentGame.id);
+
+        if (!error) {
+          players = data || [];
+          renderBoard();
+          populatePlayerRecipient();
+          document.getElementById("status").textContent =
+            "Live update received · " + new Date().toLocaleTimeString();
+        }
+      }
+    )
+    .subscribe(status => {
+      if (status === "SUBSCRIBED") {
+        document.getElementById("status").textContent = "Live connection active";
+      }
+    });
+}
+
+
+document.getElementById("recipient").addEventListener("change", updateRecipientUI);
+document.getElementById("sendMessage").addEventListener("click", sendMessage);
+document.getElementById("messageText").addEventListener("keydown", event => {
+  if ((event.ctrlKey || event.metaKey) && event.key === "Enter") sendMessage();
+});
+
+document.getElementById("loadGame").addEventListener("click", loadGame);
+
+document.getElementById("gameCode").addEventListener("keydown", event => {
+  if (event.key === "Enter") loadGame();
+});
+</script>
+</body>
+</html>
