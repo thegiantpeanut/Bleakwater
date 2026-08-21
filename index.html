@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Naval Damage Ledger</title>
+<style>
+  * { box-sizing: border-box; }
+
+  :root {
+    --ink: #27241d;
+    --ink-soft: #514a3a;
+    --paper: #d8c99f;
+    --paper-light: #e6d9b4;
+    --paper-dark: #b9a775;
+    --brass: #9b7837;
+    --brass-light: #c6a75d;
+    --brass-dark: #60491f;
+    --steel: #4c5150;
+    --steel-dark: #292d2d;
+    --red: #762f26;
+  }
+
+  body {
+    margin: 0;
+    min-height: 100vh;
+    padding: 18px 12px;
+    color: var(--ink);
+    font-family: Georgia, "Times New Roman", serif;
+    background:
+      radial-gradient(ellipse at 50% 0%, #60625c 0%, #3d403d 42%, #202321 100%);
+  }
+
+  .app {
+    position: relative;
+    width: min(680px, 100%);
+    margin: auto;
+    padding: 25px 18px 20px;
+    background:
+      linear-gradient(rgba(255,255,255,.08), rgba(0,0,0,.04)),
+      repeating-linear-gradient(0deg, rgba(80,60,25,.035) 0 1px, transparent 1px 4px),
+      var(--paper);
+    border: 5px double var(--brass-dark);
+    box-shadow:
+      0 18px 45px rgba(0,0,0,.6),
+      inset 0 0 35px rgba(79,55,19,.22);
+  }
+
+  .app::before {
+    content: "";
+    position: absolute;
+    inset: 9px;
+    pointer-events: none;
+    border: 1px solid rgba(96,73,32,.5);
+  }
+
+  header {
+    text-align: center;
+    margin-bottom: 24px;
+  }
+
+  .naval-mark {
+    display: inline-block;
+    width: 54px;
+    height: 54px;
+    margin-bottom: 8px;
+    border: 2px solid var(--brass-dark);
+    border-radius: 50%;
+    position: relative;
+  }
+
+  .naval-mark::before,
+  .naval-mark::after {
+    content: "";
+    position: absolute;
+    background: var(--brass-dark);
+  }
+
+  .naval-mark::before {
+    width: 2px;
+    height: 38px;
+    left: 24px;
+    top: 6px;
+  }
+
+  .naval-mark::after {
+    height: 2px;
+    width: 38px;
+    left: 6px;
+    top: 24px;
+  }
+
+  h1 {
+    margin: 0;
+    font-size: clamp(1.7rem, 6vw, 2.45rem);
+    letter-spacing: .12em;
+    text-transform: uppercase;
+    font-variant: small-caps;
+  }
+
+  .subtitle {
+    margin-top: 5px;
+    color: var(--ink-soft);
+    font-size: .78rem;
+    letter-spacing: .2em;
+    text-transform: uppercase;
+  }
+
+  .rule {
+    height: 2px;
+    margin: 17px auto 0;
+    max-width: 500px;
+    background: linear-gradient(90deg, transparent, var(--brass-dark), transparent);
+  }
+
+  .tracker {
+    margin: 0 0 18px;
+    padding: 15px 12px 14px;
+    background:
+      linear-gradient(rgba(255,255,255,.08), rgba(0,0,0,.04)),
+      repeating-linear-gradient(0deg, rgba(80,60,25,.035) 0 1px, transparent 1px 4px),
+      #d9ca9f;
+    border: 2px solid var(--brass-dark);
+    box-shadow:
+      inset 0 0 14px rgba(77,55,20,.15),
+      0 2px 4px rgba(40,30,15,.18);
+    overflow: hidden;
+  }
+
+  .tracker-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    border-bottom: 1px solid rgba(96,73,32,.45);
+    padding: 0 4px 7px;
+    margin-bottom: 12px;
+  }
+
+  .tracker-name {
+    font-size: 1.22rem;
+    letter-spacing: .11em;
+    text-transform: uppercase;
+    font-weight: bold;
+  }
+
+  .value {
+    font-family: "Courier New", monospace;
+    font-size: 1.35rem;
+    font-weight: bold;
+    color: var(--brass-dark);
+    min-width: 42px;
+    text-align: right;
+  }
+
+  .track-row {
+    display: grid;
+    grid-template-columns: 50px minmax(0, 1fr) 50px;
+    gap: 8px;
+    align-items: center;
+    width: 100%;
+  }
+
+  .side-control {
+    width: 50px;
+    min-width: 0;
+    height: 58px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-family: "Times New Roman", serif;
+    font-size: 1.8rem;
+    font-weight: bold;
+    color: #29251b;
+    background:
+      linear-gradient(#c7a85f, #8b672c);
+    border: 2px solid var(--brass-dark);
+    border-radius: 5px;
+    box-shadow:
+      inset 0 1px rgba(255,255,255,.45),
+      0 2px 3px rgba(0,0,0,.25);
+  }
+
+  .side-control:hover {
+    background: linear-gradient(#d5b96e, #9b7737);
+  }
+
+  .track {
+    min-width: 0;
+    padding: 2px 0;
+  }
+
+  .dots {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: clamp(3px, 1vw, 7px);
+    width: 100%;
+    align-items: center;
+  }
+
+  .dot {
+    appearance: none;
+    width: 100%;
+    aspect-ratio: 1;
+    max-width: 34px;
+    min-width: 0;
+    justify-self: center;
+    border-radius: 50%;
+    border: 2px solid var(--brass-dark);
+    background:
+      radial-gradient(circle at 35% 30%, #69706e, #343938 65%, #222624);
+    box-shadow:
+      inset 0 1px 2px rgba(255,255,255,.3),
+      0 2px 2px rgba(0,0,0,.25);
+    cursor: pointer;
+    transition: .12s ease;
+  }
+
+  .dot:hover { transform: translateY(-1px) scale(1.04); }
+
+  .dot.active {
+    background:
+      radial-gradient(circle at 32% 28%, #e0c778, #a27d35 55%, #5d461d);
+    border-color: #4c3918;
+    box-shadow:
+      inset 0 1px 2px rgba(255,255,255,.45),
+      0 0 7px rgba(143,103,34,.45);
+  }
+
+
+  .dot.danger {
+    background:
+      radial-gradient(circle at 32% 28%, #d85a4b, #8d241d 55%, #4b120e);
+    border-color: #4a1712;
+    box-shadow:
+      inset 0 1px 2px rgba(255,255,255,.35),
+      0 0 7px rgba(130,35,25,.42);
+  }
+
+  .numbers {
+    display: grid;
+    grid-template-columns: repeat(12, minmax(0, 1fr));
+    gap: clamp(3px, 1vw, 7px);
+    margin-top: 5px;
+    color: var(--ink-soft);
+    font-family: "Courier New", monospace;
+    font-size: clamp(.56rem, 2vw, .76rem);
+    text-align: center;
+  }
+
+  .controls {
+    display: contents;
+  }
+
+  footer {
+    margin-top: 17px;
+    text-align: center;
+    font-size: .7rem;
+    letter-spacing: .12em;
+    color: var(--ink-soft);
+    text-transform: uppercase;
+  }
+
+  @media (max-width: 420px) {
+    .track-row {
+      grid-template-columns: 40px minmax(0, 1fr) 40px;
+      gap: 5px;
+    }
+    .side-control {
+      width: 40px;
+      height: 52px;
+      font-size: 1.5rem;
+    }
+    body { padding: 8px 5px; }
+    .app { padding: 20px 9px 16px; border-width: 4px; }
+    .tracker { padding: 14px 7px 13px; }
+    .dots, .numbers { gap: 3px; }
+    .dot { border-width: 2px; }
+    .tracker { margin-bottom: 14px; }
+  }
+</style>
+</head>
+<body>
+  <main class="app">
+    <header>
+      <div class="naval-mark" aria-hidden="true"></div>
+      <h1>Naval Damage Ledger</h1>
+      <div class="subtitle">Fleet Action · 1914–1918</div>
+      <div class="rule"></div>
+    </header>
+
+    <section class="tracker" data-name="damage">
+      <div class="tracker-header">
+        <div class="tracker-name">Damage</div>
+        <div class="value">0</div>
+      </div>
+      <div class="track-row">
+        <button class="side-control minus" type="button" aria-label="Decrease damage">−</button>
+        <div class="track">
+          <div class="dots" aria-label="Damage points"></div>
+          <div class="numbers"></div>
+        </div>
+        <button class="side-control plus" type="button" aria-label="Increase damage">+</button>
+      </div>
+    </section>
+
+    <section class="tracker" data-name="terror">
+      <div class="tracker-header">
+        <div class="tracker-name">Terror</div>
+        <div class="value">0</div>
+      </div>
+      <div class="track-row">
+        <button class="side-control minus" type="button" aria-label="Decrease terror">−</button>
+        <div class="track">
+          <div class="dots" aria-label="Terror points"></div>
+          <div class="numbers"></div>
+        </div>
+        <button class="side-control plus" type="button" aria-label="Increase terror">+</button>
+      </div>
+    </section>
+
+    <section class="tracker" data-name="fate">
+      <div class="tracker-header">
+        <div class="tracker-name">Fate</div>
+        <div class="value">0</div>
+      </div>
+      <div class="track-row">
+        <button class="side-control minus" type="button" aria-label="Decrease fate">−</button>
+        <div class="track">
+          <div class="dots" aria-label="Fate points"></div>
+          <div class="numbers"></div>
+        </div>
+        <button class="side-control plus" type="button" aria-label="Increase fate">+</button>
+      </div>
+    </section>
+
+    <footer>Captain's Record · Keep Dry · Keep Steam Up</footer>
+  </main>
+
+<script>
+  const trackers = document.querySelectorAll(".tracker");
+
+  function saveState(name, value) {
+    localStorage.setItem("ww1-" + name, value);
+  }
+
+  function loadState(name) {
+    const value = Number(localStorage.getItem("ww1-" + name));
+    return Number.isInteger(value) && value >= 0 && value <= 12 ? value : 0;
+  }
+
+  function setValue(tracker, value) {
+    value = Math.max(0, Math.min(12, value));
+    const name = tracker.dataset.name;
+    tracker.querySelector(".value").textContent = value;
+
+    tracker.querySelectorAll(".dot").forEach((dot, index) => {
+      const point = index + 1;
+      dot.classList.toggle("active", point <= value);
+      dot.classList.toggle("danger", point >= 7 && point <= value);
+    });
+
+    saveState(name, value);
+  }
+
+  trackers.forEach(tracker => {
+    const dots = tracker.querySelector(".dots");
+    const numbers = tracker.querySelector(".numbers");
+
+    for (let i = 1; i <= 12; i++) {
+      const dot = document.createElement("button");
+      dot.className = "dot";
+      dot.type = "button";
+      dot.title = String(i);
+      dot.setAttribute("aria-label", String(i));
+      dot.addEventListener("click", () => setValue(tracker, i));
+      dots.appendChild(dot);
+
+      const number = document.createElement("div");
+      number.textContent = i;
+      numbers.appendChild(number);
+    }
+
+    setValue(tracker, loadState(tracker.dataset.name));
+
+    tracker.querySelector(".minus").addEventListener("click", () => {
+      setValue(tracker, Number(tracker.querySelector(".value").textContent) - 1);
+    });
+
+    tracker.querySelector(".plus").addEventListener("click", () => {
+      setValue(tracker, Number(tracker.querySelector(".value").textContent) + 1);
+    });
+  });
+
+</script>
+</body>
+</html>
