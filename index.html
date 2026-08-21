@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Naval Damage Ledger</title>
+<title>WW1 Naval Tracker</title>
 <style>
   * { box-sizing: border-box; }
 
@@ -35,7 +35,7 @@
     position: relative;
     width: min(680px, 100%);
     margin: auto;
-    padding: 25px 18px 20px;
+    padding: 16px 18px 14px;
     background:
       linear-gradient(rgba(255,255,255,.08), rgba(0,0,0,.04)),
       repeating-linear-gradient(0deg, rgba(80,60,25,.035) 0 1px, transparent 1px 4px),
@@ -52,65 +52,6 @@
     inset: 9px;
     pointer-events: none;
     border: 1px solid rgba(96,73,32,.5);
-  }
-
-  header {
-    text-align: center;
-    margin-bottom: 24px;
-  }
-
-  .naval-mark {
-    display: inline-block;
-    width: 54px;
-    height: 54px;
-    margin-bottom: 8px;
-    border: 2px solid var(--brass-dark);
-    border-radius: 50%;
-    position: relative;
-  }
-
-  .naval-mark::before,
-  .naval-mark::after {
-    content: "";
-    position: absolute;
-    background: var(--brass-dark);
-  }
-
-  .naval-mark::before {
-    width: 2px;
-    height: 38px;
-    left: 24px;
-    top: 6px;
-  }
-
-  .naval-mark::after {
-    height: 2px;
-    width: 38px;
-    left: 6px;
-    top: 24px;
-  }
-
-  h1 {
-    margin: 0;
-    font-size: clamp(1.7rem, 6vw, 2.45rem);
-    letter-spacing: .12em;
-    text-transform: uppercase;
-    font-variant: small-caps;
-  }
-
-  .subtitle {
-    margin-top: 5px;
-    color: var(--ink-soft);
-    font-size: .78rem;
-    letter-spacing: .2em;
-    text-transform: uppercase;
-  }
-
-  .rule {
-    height: 2px;
-    margin: 17px auto 0;
-    max-width: 500px;
-    background: linear-gradient(90deg, transparent, var(--brass-dark), transparent);
   }
 
   .tracker {
@@ -252,15 +193,6 @@
     display: contents;
   }
 
-  footer {
-    margin-top: 17px;
-    text-align: center;
-    font-size: .7rem;
-    letter-spacing: .12em;
-    color: var(--ink-soft);
-    text-transform: uppercase;
-  }
-
   @media (max-width: 420px) {
     .track-row {
       grid-template-columns: 40px minmax(0, 1fr) 40px;
@@ -282,12 +214,7 @@
 </head>
 <body>
   <main class="app">
-    <header>
-      <div class="naval-mark" aria-hidden="true"></div>
-      <h1>Naval Damage Ledger</h1>
-      <div class="subtitle">Fleet Action · 1914–1918</div>
-      <div class="rule"></div>
-    </header>
+
 
     <section class="tracker" data-name="damage">
       <div class="tracker-header">
