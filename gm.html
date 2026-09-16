@@ -359,7 +359,7 @@ async function loadGame() {
 
   const {data: playerData, error: playersError} = await db
     .from("players")
-    .select("id, game_id, name, team, hull, terror, fate, damage_dealt")
+    .select("id, game_id, name, team, hull, terror, fate, speed, damage_dealt")
     .eq("game_id", game.id);
 
   if (playersError) {
@@ -407,7 +407,7 @@ function subscribeToGame() {
         // are recalculated correctly.
         const {data, error} = await db
           .from("players")
-          .select("id, game_id, name, team, hull, terror, fate, damage_dealt")
+          .select("id, game_id, name, team, hull, terror, fate, speed, damage_dealt")
           .eq("game_id", currentGame.id);
 
         if (!error) {
