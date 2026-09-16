@@ -26,21 +26,11 @@ body{margin:0;min-height:100vh;padding:12px;color:#27241d;font-family:Georgia,"T
 .tracker-header{display:flex;justify-content:space-between;align-items:baseline;border-bottom:1px solid #60491f73;padding:0 4px 7px;margin-bottom:12px}
 .tracker-name{font-size:1.22rem;letter-spacing:.11em;text-transform:uppercase;font-weight:bold}
 .value{font-family:"Courier New",monospace;font-size:1.35rem;font-weight:bold;color:#60491f;min-width:42px;text-align:right}
-.track-row{display:grid;grid-template-columns:50px minmax(0,1fr) 50px;gap:8px;align-items:center}
-.side-control{width:50px;height:58px;padding:0;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:bold;color:#29251b;background:linear-gradient(#c7a85f,#8b672c);border:2px solid #60491f;border-radius:5px;box-shadow:inset 0 1px rgba(255,255,255,.45),0 2px 3px rgba(0,0,0,.25);cursor:pointer}
-.side-control:hover{background:linear-gradient(#d5b96e,#9b7737)}
-.side-control:active{transform:translateY(1px)}
-.track{min-width:0}
-.dots,.numbers{display:grid;grid-template-columns:repeat(12,minmax(0,1fr));gap:clamp(3px,1vw,7px);width:100%;align-items:center}
-.dot{appearance:none;width:100%;aspect-ratio:1;max-width:34px;min-width:0;justify-self:center;border-radius:50%;border:2px solid #60491f;background:radial-gradient(circle at 35% 30%,#69706e,#343938 65%,#222624);box-shadow:inset 0 1px 2px rgba(255,255,255,.3),0 2px 2px rgba(0,0,0,.25);cursor:pointer}
-.dot:hover{transform:translateY(-1px) scale(1.04)}
-.dot.active{background:radial-gradient(circle at 32% 28%,#e0c778,#a27d35 55%,#5d461d);border-color:#4c3918}
-.dot.danger{background:radial-gradient(circle at 32% 28%,#d85a4b,#8d241d 55%,#4b120e);border-color:#4a1712;box-shadow:inset 0 1px 2px rgba(255,255,255,.35),0 0 7px rgba(130,35,25,.42)}
-.numbers{margin-top:5px;color:#514a3a;font-family:"Courier New",monospace;font-size:clamp(.56rem,2vw,.76rem);text-align:center}
+.gauge-wrap{width:min(100%,430px);margin:0 auto;position:relative}.gauge{width:100%;display:block;overflow:visible}.gauge-face{fill:#eadfbf;stroke:#60491f;stroke-width:5}.gauge-inner{fill:none;stroke:#b6995d;stroke-width:2}.gauge-tick{stroke:#3e3423;stroke-width:2}.gauge-tick.major{stroke-width:3}.gauge-number{font-family:"Courier New",monospace;font-size:13px;fill:#3e3423;text-anchor:middle;dominant-baseline:middle;font-weight:bold}.gauge-danger{fill:none;stroke:#8d241d;stroke-width:12;stroke-linecap:butt;opacity:.78}.gauge-needle{stroke:#7d241c;stroke-width:5;stroke-linecap:round;transform-origin:200px 200px;transition:transform .18s ease}.gauge-hub{fill:#8b672c;stroke:#4c3918;stroke-width:3}.gauge-label{font-size:12px;letter-spacing:.12em;fill:#60491f;text-anchor:middle;font-family:Georgia,"Times New Roman",serif;font-weight:bold}.gauge-button-row{display:grid;grid-template-columns:64px 1fr 64px;gap:10px;align-items:center;margin-top:-2px}.side-control{width:64px;height:52px;padding:0;display:flex;align-items:center;justify-content:center;font-size:1.8rem;font-weight:bold;color:#29251b;background:linear-gradient(#c7a85f,#8b672c);border:2px solid #60491f;border-radius:5px;box-shadow:inset 0 1px rgba(255,255,255,.45),0 2px 3px rgba(0,0,0,.25);cursor:pointer}.side-control:hover{background:linear-gradient(#d5b96e,#9b7737)}.side-control:active{transform:translateY(1px)}.gauge-readout{text-align:center;font-family:"Courier New",monospace;font-size:1.35rem;font-weight:bold;color:#60491f}
 .damage-dealt-number{text-align:center;font-family:"Courier New",monospace;font-size:2rem;font-weight:bold;color:#60491f}
 .damage-dealt .tracker-header{margin-bottom:12px}
 .damage-dealt .track-row{grid-template-columns:50px minmax(0,1fr) 50px}
-@media(max-width:420px){body{padding:7px 5px}.app{padding:12px 9px;border-width:4px}.track-row{grid-template-columns:40px minmax(0,1fr) 40px;gap:5px}.side-control{width:40px;height:52px;font-size:1.5rem}.tracker,.damage-dealt{padding:14px 7px 13px}.dots,.numbers{gap:3px}}
+@media(max-width:420px){body{padding:7px 5px}.app{padding:12px 9px;border-width:4px}.tracker,.damage-dealt{padding:14px 7px 13px}.gauge-wrap{width:100%}.gauge-button-row{grid-template-columns:52px 1fr 52px;gap:8px}.side-control{width:52px;height:48px;font-size:1.5rem}}
 </style>
 </head>
 <body>
@@ -76,29 +66,20 @@ body{margin:0;min-height:100vh;padding:12px;color:#27241d;font-family:Georgia,"T
 
 <section class="tracker" data-name="hull">
 <div class="tracker-header"><div class="tracker-name">Hull</div><div class="value">0</div></div>
-<div class="track-row">
-<button class="side-control minus" type="button">−</button>
-<div class="track"><div class="dots"></div><div class="numbers"></div></div>
-<button class="side-control plus" type="button">+</button>
-</div>
+<div class="gauge-wrap"><svg class="gauge" viewBox="0 0 400 235" role="img" aria-label="Hull gauge"><path class="gauge-face" d="M35 200 A165 165 0 0 1 365 200 L35 200 Z"></path><path class="gauge-inner" d="M55 200 A145 145 0 0 1 345 200"></path><path class="gauge-danger" d="M200 55 A145 145 0 0 1 345 200"></path><g class="gauge-scale"></g><line class="gauge-needle" x1="200" y1="200" x2="200" y2="82"></line><circle class="gauge-hub" cx="200" cy="200" r="10"></circle><text class="gauge-label" x="200" y="226">HULL</text></svg></div>
+<div class="gauge-button-row"><button class="side-control minus" type="button">−</button><div class="gauge-readout"><span class="gauge-readout-value">0</span> / 12</div><button class="side-control plus" type="button">+</button></div>
 </section>
 
 <section class="tracker" data-name="terror">
 <div class="tracker-header"><div class="tracker-name">Terror</div><div class="value">0</div></div>
-<div class="track-row">
-<button class="side-control minus" type="button">−</button>
-<div class="track"><div class="dots"></div><div class="numbers"></div></div>
-<button class="side-control plus" type="button">+</button>
-</div>
+<div class="gauge-wrap"><svg class="gauge" viewBox="0 0 400 235" role="img" aria-label="Terror gauge"><path class="gauge-face" d="M35 200 A165 165 0 0 1 365 200 L35 200 Z"></path><path class="gauge-inner" d="M55 200 A145 145 0 0 1 345 200"></path><path class="gauge-danger" d="M200 55 A145 145 0 0 1 345 200"></path><g class="gauge-scale"></g><line class="gauge-needle" x1="200" y1="200" x2="200" y2="82"></line><circle class="gauge-hub" cx="200" cy="200" r="10"></circle><text class="gauge-label" x="200" y="226">TERROR</text></svg></div>
+<div class="gauge-button-row"><button class="side-control minus" type="button">−</button><div class="gauge-readout"><span class="gauge-readout-value">0</span> / 12</div><button class="side-control plus" type="button">+</button></div>
 </section>
 
 <section class="tracker" data-name="fate">
 <div class="tracker-header"><div class="tracker-name">Fate</div><div class="value">0</div></div>
-<div class="track-row">
-<button class="side-control minus" type="button">−</button>
-<div class="track"><div class="dots"></div><div class="numbers"></div></div>
-<button class="side-control plus" type="button">+</button>
-</div>
+<div class="gauge-wrap"><svg class="gauge" viewBox="0 0 400 235" role="img" aria-label="Fate gauge"><path class="gauge-face" d="M35 200 A165 165 0 0 1 365 200 L35 200 Z"></path><path class="gauge-inner" d="M55 200 A145 145 0 0 1 345 200"></path><path class="gauge-danger" d="M200 55 A145 145 0 0 1 345 200"></path><g class="gauge-scale"></g><line class="gauge-needle" x1="200" y1="200" x2="200" y2="82"></line><circle class="gauge-hub" cx="200" cy="200" r="10"></circle><text class="gauge-label" x="200" y="226">FATE</text></svg></div>
+<div class="gauge-button-row"><button class="side-control minus" type="button">−</button><div class="gauge-readout"><span class="gauge-readout-value">0</span> / 12</div><button class="side-control plus" type="button">+</button></div>
 </section>
 
 <section class="damage-dealt">
@@ -139,15 +120,11 @@ function showError(message) {
 function drawTracker(name, value) {
   const tracker = document.querySelector(`.tracker[data-name="${name}"]`);
   if (!tracker) return;
-
   value = Math.max(0, Math.min(12, Number(value) || 0));
   tracker.querySelector(".value").textContent = value;
-
-  tracker.querySelectorAll(".dot").forEach((dot, index) => {
-    const point = index + 1;
-    dot.classList.toggle("active", point <= value);
-    dot.classList.toggle("danger", point >= 7 && point <= value);
-  });
+  tracker.querySelector(".gauge-readout-value").textContent = value;
+  const angle = -90 + (value / 12) * 180;
+  tracker.querySelector(".gauge-needle").style.transform = `rotate(${angle}deg)`;
 }
 
 function drawAll(player) {
@@ -193,28 +170,31 @@ async function saveScore(field, value) {
 function buildTrackers() {
   document.querySelectorAll(".tracker").forEach(tracker => {
     const name = tracker.dataset.name;
-    const dots = tracker.querySelector(".dots");
-    const numbers = tracker.querySelector(".numbers");
-
-    for (let i = 1; i <= 12; i++) {
-      const dot = document.createElement("button");
-      dot.className = "dot";
-      dot.type = "button";
-      dot.setAttribute("aria-label", `${name} ${i}`);
-      dot.addEventListener("click", () => saveScore(name, i));
-      dots.appendChild(dot);
-
-      const number = document.createElement("div");
-      number.textContent = i;
-      numbers.appendChild(number);
+    const scale = tracker.querySelector(".gauge-scale");
+    const svgNS = "http://www.w3.org/2000/svg";
+    for (let i = 0; i <= 12; i++) {
+      const angleDeg = 180 - (i / 12) * 180;
+      const angle = angleDeg * Math.PI / 180;
+      const rOuter = 142, rInner = i % 2 === 0 ? 124 : 130, rText = 108;
+      const x1 = 200 + Math.cos(angle) * rInner, y1 = 200 - Math.sin(angle) * rInner;
+      const x2 = 200 + Math.cos(angle) * rOuter, y2 = 200 - Math.sin(angle) * rOuter;
+      const tick = document.createElementNS(svgNS, "line");
+      tick.setAttribute("x1", x1); tick.setAttribute("y1", y1); tick.setAttribute("x2", x2); tick.setAttribute("y2", y2); tick.setAttribute("class", "gauge-tick" + (i % 2 === 0 ? " major" : "")); scale.appendChild(tick);
+      if (i > 0) {
+        const tx = 200 + Math.cos(angle) * rText, ty = 200 - Math.sin(angle) * rText;
+        const text = document.createElementNS(svgNS, "text"); text.setAttribute("x", tx); text.setAttribute("y", ty); text.setAttribute("class", "gauge-number"); text.textContent = i; scale.appendChild(text);
+      }
     }
-
-    tracker.querySelector(".minus").addEventListener("click", () => {
-      saveScore(name, Math.max(0, Number(tracker.querySelector(".value").textContent) - 1));
-    });
-
-    tracker.querySelector(".plus").addEventListener("click", () => {
-      saveScore(name, Math.min(12, Number(tracker.querySelector(".value").textContent) + 1));
+    tracker.querySelector(".minus").addEventListener("click", () => { const current = Number(tracker.querySelector(".value").textContent); saveScore(name, Math.max(0, current - 1)); });
+    tracker.querySelector(".plus").addEventListener("click", () => { const current = Number(tracker.querySelector(".value").textContent); saveScore(name, Math.min(12, current + 1)); });
+    tracker.querySelector(".gauge").addEventListener("click", event => {
+      const rect = event.currentTarget.getBoundingClientRect();
+      const x = ((event.clientX - rect.left) / rect.width) * 400;
+      const y = ((event.clientY - rect.top) / rect.height) * 235;
+      const dx = x - 200, dy = 200 - y;
+      let angle = Math.atan2(dy, dx) * 180 / Math.PI;
+      angle = Math.max(0, Math.min(180, angle));
+      saveScore(name, Math.round((180 - angle) / 180 * 12));
     });
   });
 }
